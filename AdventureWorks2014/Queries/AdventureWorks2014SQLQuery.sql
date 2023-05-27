@@ -408,8 +408,13 @@ from Sales.SalesPerson
 --SUM - suma wartosci. Moze byc stosowana tylko i wyłącznie dla danych liczbowych.
 
 
-select sum(SickLeaveHours)/24 as "Suma dni chorobowego"
+select sum(SickLeaveHours)/8 as "Suma dni chorobowego"
 from HumanResources.Employee;
+
+
+select JobTitle, sum(VacationHours) as "Suma wolnych godzin"
+From HumanResources.Employee
+group by JobTitle;
 
 
 -- MIN i MAX - najnizsza i najwyzsza wartość. Moze byćstosowana do danych liczbowych, ciągów tekstu i dat.
@@ -430,3 +435,80 @@ from Sales.SpecialOffer
 
 select count(MaxQty) as "Liczba rekordow z wartoscia w kolumnie MAXQTY"
 from Sales.SpecialOffer
+
+
+-- COUNT(DISTINCT nazwa kolumny) - zwraca liczbę unikatowych rekordów w kolumnie.
+
+select COUNT(DISTINCT type) as "Liczba unikatowych rekordów w kolumnie type"
+from Sales.SpecialOffer;
+
+
+--AVG - średnia wartość. Może być stosowana wyłącznie dla danych liczbowych. Funkcje agregujące ignorują pola z brakiem wartości NULL.
+
+select AVG(MaxQty)
+from Sales.SpecialOffer;
+
+
+select sum(MaxQty)/COUNT(MaxQty) as "Średnia policzona",
+		AVG(MaxQty) as "Średnia z rekordów bez null",
+		AVG(ISNULL(MaxQty,0)) as "Średnia z wszystkich rekordów"
+from Sales.SpecialOffer;
+
+
+--Zadanie 9: Z tabeli Sales.SalesPerson zwróć maksymalną wartość z kolumny 
+--SalesQuota, średnią z kolumny SalesQuota, oraz średnią z tej samej kolumny, 
+--która da prawidłowy wynik (w kolumnie SalesQuota występują nulle). 
+
+select MAX(sp.SalesQuota) as "Max SalesQuota", AVG(sp.SalesQuota) as "Średnia SalesQuota", AVG(ISNULL(SalesQuota,0)) as "Porawna Średnia SalesQuota"
+from Sales.SalesPerson as sp;
+
+
+-----------------GROUP BY--------
+
+select sum(VacationHours) as "Suma wolnych godzin"
+from HumanResources.Employee;
+
+
+Select JobTitle, sum(VacationHours) as "Suma wolnych godzin"
+from HumanResources.Employee
+group by JobTitle;
+
+-------Kiedy używana jest klauzula GROUP BY wszystkie kolumny znajdujące sie w klauzuli SELECT !!!-->(poza tymi, które są użyte w funkcjach grupujących)
+-------muszą znaleźć się również w klauzuli GROUP BY 
+
+------Kolumny znajdujące się w klauzuli GROUP BY nie muszą znajdywać sie równocześnie w klauzuli SELECT.
+
+select sp.TerritoryID ,MAX(sp.SalesYTD) as "Najwyższa sprzedaż",
+		MIN(sp.SalesYTD) as "Najniższa sprzedaż",
+		AVG(sp.SalesYTD) as "Średnia sprzedaż"
+from Sales.SalesPerson as sp
+group by sp.TerritoryID; 
+
+
+------Grupowanie może być realizowane dla większej liczby kolumn.
+------Grupować można w innej kolejności niż jest w klauzuli SELECT
+
+
+Select hre.JobTitle, hre.Gender, sum(hre.VacationHours) as "Suma wolnych godzin"
+from HumanResources.Employee as hre
+Group by hre.Gender, hre.JobTitle;
+
+
+------Do filtrowania wyników zapytania z funkcji agregujących NIE MOZNA używać klauzuli WHERE. WHERE służy do filtrowania danych.
+
+select e.JobTitle, e.Gender, sum(e.VacationHours) as "Suma wolnych godzin" 
+From HumanResources.Employee e
+where AVG(e.VacationHours)>40
+group by e.Gender, e.JobTitle
+
+------Filtrowanie/ograniczanie liczby grup wykonuje sie za pomocą klauzuli HAVING.
+
+select e.JobTitle, e.Gender, SUM(e.VacationHours) as "Suma wolnych godzin", AVG(e.VacationHours) as "Średnia wolnych godzin", e.MaritalStatus
+from HumanResources.Employee e
+where e.MaritalStatus = 'S'
+group by e.Gender, e.JobTitle,e.MaritalStatus
+having AVG(e.VacationHours)<40
+Order by 3 desc;
+
+
+
