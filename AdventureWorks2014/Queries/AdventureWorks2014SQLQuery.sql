@@ -239,7 +239,7 @@ select HireDate, DATEDIFF(year, HireDate, CAST(GETDATE() as date)) as "Ile już 
 from HumanResources.Employee;
 
 
--- CONVERT() funkcja sluzy do konwersji danych
+-- CONVERT(typ_danych, wartość_konwertowana, opcjonalnie_styl) funkcja sluzy do konwersji danych
 
 select 'Todat is a ' + DATENAME(WEEKDAY,GETDATE()) + ', ' + CONVERT(varchar(10), GETDATE(),105) as "Jaki dziś dzień";
 
@@ -512,3 +512,58 @@ Order by 3 desc;
 
 
 
+------------------ CASE --> KOLUMNA WARUNKOWA
+
+------Instrukcja CASE pozwala na dodanie nowej kolumny, której wartości zależne będą od wyników w innej kolumnie. 
+------Można do niej przyrównać intrukcję warunkową IF w VBA, albo funkcję Excela WARUNKI
+
+
+------Zastosowanie CASE dla wartości równej. W tym wypadku jeśli CASE nie znajdzie wartości takiej jak w kryterium to zwróci null.
+
+select pc.Name "Jezyk po angielsku",
+	CASE pc.Name when 'English' then 'Angielski'
+				when 'Spanish' then 'Hiszpanski'
+	end as "Język po polsku"
+from Production.Culture as pc;
+
+------Możliwe jest doipsanie polecenia ELSE, które w przypadku nieznalezienia żadnego z porównania powoduje zwrócenie wskazanej po ELSE wartości.
+
+select pc.Name,
+	case pc.Name when 'English' then 'Angielski'
+				when 'Spanish' then 'Hiszpański'
+	else 'Jakiś inny język'
+	end as "Język po polsku"
+from Production.Culture pc
+
+------W klauzuli CASE można zwracać wyniki funkcji, pod warunkiem, że jest on tego samego typu co pozostałe możliwe wyniki.
+------Czyli zachowana musi być zasada, że w jednej kolumnie znajduje się tylko jeden typ danych. 
+------Wynik może też być wartością wyciągnięta z kolumny.
+
+select pc.Name,
+	case pc.Name when 'English' then 'Angielski'
+				when 'Spanish' then N'Hiszpański'
+				when 'Arabic' then cast(GETDATE() as nvarchar)
+				when 'French' then CONVERT(nvarchar, GETDATE(), 103)
+				when 'Thai' then LEFT(pc.Name,2)
+	else pc.Name
+	end as "Język po polsku"
+from Production.Culture pc;
+
+
+select e.BusinessEntityID, e.Gender, e.VacationHours,
+	case e.gender when 'F' then e.VacationHours + 16
+		else e.VacationHours
+	end as "Wolne godziny po zmianie"
+from HumanResources.Employee e;
+
+
+------W klauzuli CASE można używac operatorów porównania. 
+
+select so.Description, so.DiscountPct,
+	case when so.DiscountPct <= 0.1 then N'Mała obniżka'
+		when so.DiscountPct <= 0.2 then N'Średnia obniżka'
+		when so.DiscountPct <= 0.3 then N'Dobra oniżka'
+		when so.DiscountPct <= 0.4 then N'Super obniżka'
+		else 'Prawie darmo'
+	end as "Status obniżki"
+from Sales.SpecialOffer so;
